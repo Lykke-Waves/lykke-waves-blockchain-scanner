@@ -26,3 +26,4 @@ For this moment there are no any configuration allowed, it requires MongoDB inst
 - [ ] Make the required logging format
 - [ ] Make the database errors resilience
 - [ ] Make some tests
+- [ ] Clean up the code
