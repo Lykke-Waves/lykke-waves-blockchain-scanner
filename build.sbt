@@ -15,7 +15,7 @@ version in ThisBuild := {
 }
 
 libraryDependencies ++= Seq(
-  "ru.tolsi" %% "lykke-waves-common" % "master-fa2f3ba3-SNAPSHOT" % "compile->compile;test->test",
+  "ru.tolsi" %% "lykke-waves-common" % "master-96609dea-SNAPSHOT" % "compile->compile;test->test",
   "org.scalaj" %% "scalaj-http" % "2.3.0",
   "commons-io" % "commons-io" % "2.6"
 )
