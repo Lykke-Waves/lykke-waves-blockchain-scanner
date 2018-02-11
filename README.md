@@ -23,6 +23,8 @@ For this moment there are no any configuration allowed, it requires MongoDB inst
 
 # Todos
 
+Due to the rather tight deadlines of the contest and lack of free time, the project will be completed a little later.
+
 - [ ] Make the required logging format
 - [ ] Make the database errors resilience
 - [ ] Make some tests
