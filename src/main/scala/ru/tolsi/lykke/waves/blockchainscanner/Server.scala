@@ -6,9 +6,11 @@ import ru.tolsi.lykke.common.repository.mongo._
 import ru.tolsi.lykke.common.repository.{Asset, AssetsStore, Transaction}
 import ru.tolsi.lykke.waves.blockchainscanner.storage.MongoStateStorage
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 object Server extends App with StrictLogging {
   private val mongoClient = MongoClient()
@@ -25,7 +27,7 @@ object Server extends App with StrictLogging {
   private val toAddressTransactionsStore = new MongoToAddressTransactionsStore(new MongoCollection(db.getCollection("to_address_transactions")),
     new MongoCollection(db.getCollection("to_address_transactions_observations")))
 
-  new WavesBlockScanner(from, by = 99, api, confirmations = 20, blocks => {
+  val scanner = new WavesBlockScanner(from, by = 99, api, confirmations = 20, blocks => {
     // todo retries
 
     val transactions = blocks.flatMap(_.transactions)
@@ -40,12 +42,14 @@ object Server extends App with StrictLogging {
 
     val observedFromF = fromAddressTransactionsStore.findObservables(transfers.map(_.from).toSet)
     val observedFromTransactionsF = observedFromF.map(_.flatMap(address => groupedByFrom(address)))
+
     val observedToF = toAddressTransactionsStore.findObservables(transfers.map(_.to).toSet)
     val observedToTransactionsF = observedToF.map(_.flatMap(address => groupedByTo(address)))
-    val observedToBalancesF = balancesStore.findObservables(transfers.map(_.to).toSet)
+
+    val observedToBalancesF = balancesStore.findObservables(transfers.map(_.to).toSet ++ transfers.map(_.from).toSet)
     val observedToBalancesTransactionsF = observedToBalancesF.map(_.flatMap(address =>
       groupedByTo.getOrElse(address, Seq.empty).map(t => (t.to, t.assetId, t.amount)) ++
-        groupedByFrom.getOrElse(address, Seq.empty).map(t => (t.from, t.assetId, -t.amount))))
+        groupedByFrom.getOrElse(address, Seq.empty).map(t => (t.from, t.assetId, -t.amount - (if (t.feeAssetId.isEmpty) t.fee else 0)))))
 
     val insertsF = for {
       observedFromTransactions <- observedFromTransactionsF
@@ -69,4 +73,29 @@ object Server extends App with StrictLogging {
     val operations = Future.sequence(Seq(registersF, insertsF))
     Await.result(operations, 5 minutes)
   })
+
+  while (true) {
+    logger.info(s"Checking new blocks was started")
+    try {
+      scanner.step() match {
+        case Success(h) =>
+          val lastProcessed = Await.result(stateStorage.readLastBlock, 1 minute)
+          if (h > lastProcessed) {
+            logger.info(s"Scanner '${scanner.toString}' step succeed, new confirmed height is $h now")
+            Await.result(stateStorage.saveLastBlock(h), 1 minute)
+          } else {
+            logger.info(s"Scanner '${scanner.toString}' step succeed, but confirmed height is the same, sleep 30s")
+            Thread.sleep(30000)
+          }
+        case Failure(f) =>
+          logger.error(s"Scanner '${scanner.toString}' step failed: ${f.getMessage}, sleep 30s", f)
+          Thread.sleep(30000)
+      }
+    } catch {
+      case NonFatal(e) =>
+        logger.error(s"Unexpected error, sleep 30s", e)
+        Thread.sleep(30000)
+    }
+    logger.info(s"Checking new blocks was finished")
+  }
 }

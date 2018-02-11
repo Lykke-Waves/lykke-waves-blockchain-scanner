@@ -15,7 +15,7 @@ class MongoStateStorage(collection: MongoCollection) extends StateStorage {
   private object MongoLastBlockDAO extends SalatDAO[LastBlock, String](collection)
 
   def readLastBlock: Future[Int] =
-    Future.successful(MongoLastBlockDAO.findOneById("waves").map(_.block).getOrElse(1))
+    Future.successful(MongoLastBlockDAO.findOneById("waves").map(_.block).getOrElse(0))
 
   def saveLastBlock(block: Int): Future[Unit] =
     Future.successful(MongoLastBlockDAO.update(MongoDBObject("_id" -> "waves"), MongoDBObject("block" -> block), upsert = true))

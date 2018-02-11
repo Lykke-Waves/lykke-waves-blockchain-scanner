@@ -54,12 +54,12 @@ object WavesIssueTransaction {
       (JsPath \ "type").read[Int] and
       (JsPath \ "sender").read[String] and
       (JsPath \ "senderPublicKey").read[String] and
-      (JsPath \ "amount").read[Long] and
+      (JsPath \ "quantity").read[Long] and
       (JsPath \ "decimals").read[Byte] and
       (JsPath \ "timestamp").read[Long] and
       (JsPath \ "fee").read[Long] and
-      (JsPath \ "name").readNullable[String].map(b => if (b.nonEmpty && b.exists(_.nonEmpty)) new String(Base58.decode(b.get).get, Charset.forName("UTF-8")) else "") and
-      (JsPath \ "description").readNullable[String].map(b => if (b.nonEmpty && b.exists(_.nonEmpty)) new String(Base58.decode(b.get).get, Charset.forName("UTF-8")) else "") and
+      (JsPath \ "name").read[String] and
+      (JsPath \ "description").read[String] and
       (JsPath \ "signature").read[String]
     ) { (id: String, t: Int, sender: String, senderPublicKey: String, amount: Long, decimals: Byte, timestamp: Long, fee: Long, name: String, description: String, signature: String) => {
     require(t == WavesTransaction.IssueType)

@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.StrictLogging
 import org.apache.commons.io.IOUtils
 import org.apache.http.{HttpHost, HttpStatus}
 import org.apache.http.client.HttpClient
-import org.apache.http.client.config.RequestConfig
+import org.apache.http.client.config.{CookieSpecs, RequestConfig}
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.config.SocketConfig
@@ -38,6 +38,7 @@ trait HttpClientUsage extends StrictLogging {
     .setConnectionRequestTimeout(30000)
     .setConnectTimeout(15000)
     .setSocketTimeout(15000)
+    .setCookieSpec(CookieSpecs.STANDARD)
     .build()
   protected val httpClient: HttpClient = HttpClientBuilder.create()
     .setDefaultSocketConfig(SocketConfig.custom().setSoKeepAlive(true).setSoReuseAddress(true).build())
