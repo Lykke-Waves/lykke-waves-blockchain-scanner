@@ -29,3 +29,4 @@ Due to the rather tight deadlines of the contest and lack of free time, the proj
 - [ ] Make the database errors resilience
 - [ ] Make some tests
 - [ ] Clean up the code
+- [ ] Better documentation
