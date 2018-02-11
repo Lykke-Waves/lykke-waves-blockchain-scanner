@@ -48,7 +48,7 @@ trait HttpClientUsage extends StrictLogging {
 
 
   protected def retry(url: String, retryCount: Int = 0, e: Exception): Future[String] = if (retryCount < 5) {
-    logger.error(s"Failed request '$url' error, sleep 30s, change proxy and retry", e)
+    logger.error(s"Failed request '$url' error, sleep 30s and retry", e)
     Thread.sleep(30000)
     makeGetRequest(url, retryCount + 1)
   } else {
