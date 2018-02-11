@@ -19,4 +19,4 @@ Just install the .deb package and start the service.
 
 # Configuration
 
-For this moment there are no any configuration allowed, it requires MongoDB installed at `mongodb://127.0.0.1:27017`.
+For this moment there are no any configuration allowed, it requires MongoDB installed at `mongodb://127.0.0.1:27017` and uses db `lykke-waves`.
