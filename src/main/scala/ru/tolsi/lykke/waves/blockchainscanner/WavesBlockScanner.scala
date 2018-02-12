@@ -6,5 +6,6 @@ class WavesBlockScanner(override val from: Int,
                         override val confirmations: Int,
                         override val notifyBlocks: Seq[WavesBlock] => Unit) extends Scanner {
   override def toString = s"Waves block scanner [lastSeenHeight = $lastSeenHeight]"
+
   override def network = "waves"
 }

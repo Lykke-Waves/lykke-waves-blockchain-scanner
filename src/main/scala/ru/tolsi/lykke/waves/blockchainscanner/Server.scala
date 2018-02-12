@@ -1,10 +1,7 @@
 package ru.tolsi.lykke.waves.blockchainscanner
 
-import java.net.URL
-
 import com.mongodb.casbah.{MongoClient, MongoCollection}
 import com.typesafe.scalalogging.StrictLogging
-import play.api.libs.json.{Json, Reads}
 import ru.tolsi.lykke.common.NetworkType
 import ru.tolsi.lykke.common.repository.mongo._
 import ru.tolsi.lykke.common.repository.{Asset, AssetsStore, Transaction}
@@ -16,23 +13,15 @@ import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
-object ScannerSettings {
-  val Default = ScannerSettings(NetworkType.Main)
-  implicit val scannerSettingsReader = Reads[ScannerSettings]
-}
-case class ScannerSettings(NetworkType: NetworkType)
 
 object Server extends App with StrictLogging {
   private val mongoClient = MongoClient()
-  private val db = mongoClient.getDB("lykke-waves")
-
-  def loadSettings(pathOpt: Option[String]): ScannerSettings = {
-    val contentStreamOpt = pathOpt.map(u => new URL(u).openStream)
-    contentStreamOpt.map(c => Json.parse(c).as[ScannerSettings]).getOrElse(ScannerSettings.Default)
-  }
 
   private val settingsUrl = Option(System.getProperty("SettingsUrl"))
-  private val settings = loadSettings(settingsUrl)
+  private val settings = ScannerSettings.loadSettings(settingsUrl)
+
+  private val dbName = if (settings.NetworkType == NetworkType.Main) "lykke-waves" else "lykke-waves-testnet"
+  private val db = mongoClient.getDB(dbName)
 
   private val networkName = if (settings.NetworkType == NetworkType.Main) "waves" else "waves-testnet"
   private val stateStorage = new MongoStateStorage(networkName, new MongoCollection(db.getCollection("processed")))
@@ -50,7 +39,7 @@ object Server extends App with StrictLogging {
   private val toAddressTransactionsStore = new MongoToAddressTransactionsStore(new MongoCollection(db.getCollection("to_address_transactions")),
     new MongoCollection(db.getCollection("to_address_transactions_observations")))
 
-  val scanner = new WavesBlockScanner(from, by = 99, api, confirmations = 20, blocks => {
+  private val scanner = new WavesBlockScanner(from, by = 99, api, confirmations = 20, blocks => {
     val transactions = blocks.flatMap(_.transactions)
 
     val transfers = transactions.collect { case t: WavesTransferTransaction => t }

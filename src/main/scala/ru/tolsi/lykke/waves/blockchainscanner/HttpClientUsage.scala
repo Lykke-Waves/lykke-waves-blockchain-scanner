@@ -5,19 +5,16 @@ import java.nio.charset.Charset
 
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.commons.io.IOUtils
-import org.apache.http.{HttpHost, HttpStatus}
+import org.apache.http.HttpStatus
 import org.apache.http.client.HttpClient
 import org.apache.http.client.config.{CookieSpecs, RequestConfig}
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpGet}
 import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.config.SocketConfig
-import org.apache.http.conn.params.ConnRoutePNames
 import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.http.message.BasicHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 import scalaj.http.HttpResponse

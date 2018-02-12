@@ -4,5 +4,6 @@ import scala.concurrent.Future
 
 trait StateStorage {
   def readLastBlock: Future[Int]
+
   def saveLastBlock(block: Int): Future[Unit]
 }

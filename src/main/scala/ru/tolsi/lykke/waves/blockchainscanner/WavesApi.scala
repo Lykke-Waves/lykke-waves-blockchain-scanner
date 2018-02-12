@@ -1,11 +1,10 @@
 package ru.tolsi.lykke.waves.blockchainscanner
 
 import play.api.libs.json._
-import ru.tolsi.lykke.waves.blockchainscanner.WavesApi.isAssetIssue
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object WavesApi {
   def isTransferTransaction(js: JsObject): Boolean = {
