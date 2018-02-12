@@ -30,3 +30,4 @@ Due to the rather tight deadlines of the contest and lack of free time, the proj
 - [ ] Make some tests
 - [ ] Clean up the code
 - [ ] Better documentation
+- [ ] NetworkType (testnet) support
