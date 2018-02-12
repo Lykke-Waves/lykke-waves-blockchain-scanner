@@ -19,7 +19,19 @@ Just install the .deb package and start the service.
 
 # Configuration
 
-For this moment there are no any configuration allowed, it requires MongoDB installed at `mongodb://127.0.0.1:27017` and uses db `lykke-waves`.
+The app reads settings from the URL or local file specified in the `SettingsUrl` environment variable.
+
+There are allowed settings:
+
+```
+NetworkType: String - "main" or "test"
+MongoDBHost: String - ex. "localhost"
+MongoDBPort: Int - ex. 27017
+ServiceHost: String - ex. "localhost"
+ServicePort: Int - ex. 8080
+```
+
+By default it will be a HTTP service at `localhost:8080` for Waves Mainnet and it requires MongoDB installed at `127.0.0.1:27017` and uses db `lykke-waves` (`lykke-waves-testnet` due your `NetworkType`).
 
 # Todos
 
