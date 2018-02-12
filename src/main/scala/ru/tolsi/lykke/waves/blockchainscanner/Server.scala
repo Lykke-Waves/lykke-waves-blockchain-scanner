@@ -1,7 +1,11 @@
 package ru.tolsi.lykke.waves.blockchainscanner
 
+import java.net.URL
+
 import com.mongodb.casbah.{MongoClient, MongoCollection}
 import com.typesafe.scalalogging.StrictLogging
+import play.api.libs.json.{Json, Reads}
+import ru.tolsi.lykke.common.NetworkType
 import ru.tolsi.lykke.common.repository.mongo._
 import ru.tolsi.lykke.common.repository.{Asset, AssetsStore, Transaction}
 import ru.tolsi.lykke.waves.blockchainscanner.storage.MongoStateStorage
@@ -12,12 +16,31 @@ import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
+object ScannerSettings {
+  val Default = ScannerSettings(NetworkType.Main)
+  implicit val scannerSettingsReader = Reads[ScannerSettings]
+}
+case class ScannerSettings(NetworkType: NetworkType)
+
 object Server extends App with StrictLogging {
   private val mongoClient = MongoClient()
   private val db = mongoClient.getDB("lykke-waves")
-  private val stateStorage = new MongoStateStorage(new MongoCollection(db.getCollection("processed")))
+
+  def loadSettings(pathOpt: Option[String]): ScannerSettings = {
+    val contentStreamOpt = pathOpt.map(u => new URL(u).openStream)
+    contentStreamOpt.map(c => Json.parse(c).as[ScannerSettings]).getOrElse(ScannerSettings.Default)
+  }
+
+  private val settingsUrl = Option(System.getProperty("SettingsUrl"))
+  private val settings = loadSettings(settingsUrl)
+
+  private val networkName = if (settings.NetworkType == NetworkType.Main) "waves" else "waves-testnet"
+  private val stateStorage = new MongoStateStorage(networkName, new MongoCollection(db.getCollection("processed")))
+
   private val from = Await.result(stateStorage.readLastBlock, 1 minute)
-  private val api = new WavesApi("https://nodes.wavesnodes.com")
+
+  private val apiUrl = if (settings.NetworkType == NetworkType.Main) "https://nodes.wavesnodes.com" else "https://testnodes.wavesnodes.com/"
+  private val api = new WavesApi(apiUrl)
 
   private val assetsStore = new MongoAssetsStore(new MongoCollection(db.getCollection("assets")))
   private val balancesStore = new MongoBalancesStore(new MongoCollection(db.getCollection("balances")),
@@ -28,12 +51,12 @@ object Server extends App with StrictLogging {
     new MongoCollection(db.getCollection("to_address_transactions_observations")))
 
   val scanner = new WavesBlockScanner(from, by = 99, api, confirmations = 20, blocks => {
-    // todo retries
-
     val transactions = blocks.flatMap(_.transactions)
 
     val transfers = transactions.collect { case t: WavesTransferTransaction => t }
     val issues = transactions.collect { case t: WavesIssueTransaction => t }
+
+    val blockHeightByTransferId = blocks.flatMap(b => b.transactions.collect { case t: WavesTransferTransaction => t }.map(tx => tx.id -> b.height.get)).toMap
 
     val groupedByFrom = transfers.groupBy(_.from)
     val groupedByTo = transfers.groupBy(_.to)
@@ -48,8 +71,8 @@ object Server extends App with StrictLogging {
 
     val observedToBalancesF = balancesStore.findObservables(transfers.map(_.to).toSet ++ transfers.map(_.from).toSet)
     val observedToBalancesTransactionsF = observedToBalancesF.map(_.flatMap(address =>
-      groupedByTo.getOrElse(address, Seq.empty).map(t => (t.to, t.assetId, t.amount)) ++
-        groupedByFrom.getOrElse(address, Seq.empty).map(t => (t.from, t.assetId, -t.amount - (if (t.feeAssetId.isEmpty) t.fee else 0)))))
+      groupedByTo.getOrElse(address, Seq.empty).map(t => (t.to, t.assetId, t.amount, blockHeightByTransferId(t.id))) ++
+        groupedByFrom.getOrElse(address, Seq.empty).map(t => (t.from, t.assetId, -t.amount - (if (t.feeAssetId.isEmpty) t.fee else 0), blockHeightByTransferId(t.id)))))
 
     val insertsF = for {
       observedFromTransactions <- observedFromTransactionsF
@@ -64,9 +87,8 @@ object Server extends App with StrictLogging {
           Transaction(None, t.timestamp, t.from, t.to, t.assetId, t.amount, t.id, toAddressTransactionsStore.field))
         )),
         Future.sequence(observedToBalancesTransactions.map {
-          case (address, assetId, amount) =>
-            // todo block h?!
-            balancesStore.updateBalance(address, assetId.getOrElse(AssetsStore.WavesAsset.assetId), amount, 0)
+          case (address, assetId, amount, blockHeight) =>
+            balancesStore.updateBalance(address, assetId.getOrElse(AssetsStore.WavesAsset.assetId), amount, blockHeight)
         })))
     }
 
