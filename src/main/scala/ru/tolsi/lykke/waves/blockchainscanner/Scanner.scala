@@ -1,6 +1,7 @@
 package ru.tolsi.lykke.waves.blockchainscanner
 
 import com.typesafe.scalalogging.StrictLogging
+import ru.tolsi.lykke.common.api.{RangeUtil, ScannerApi, WavesBlock}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

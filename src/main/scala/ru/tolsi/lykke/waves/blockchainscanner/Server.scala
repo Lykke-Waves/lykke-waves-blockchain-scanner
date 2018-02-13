@@ -3,6 +3,7 @@ package ru.tolsi.lykke.waves.blockchainscanner
 import com.mongodb.casbah.{MongoClient, MongoCollection}
 import com.typesafe.scalalogging.StrictLogging
 import ru.tolsi.lykke.common.NetworkType
+import ru.tolsi.lykke.common.api.{WavesApi, WavesIssueTransaction, WavesTransferTransaction}
 import ru.tolsi.lykke.common.repository.mongo._
 import ru.tolsi.lykke.common.repository.{Asset, AssetsStore, Transaction}
 import ru.tolsi.lykke.waves.blockchainscanner.storage.MongoStateStorage
@@ -31,6 +32,7 @@ object Server extends App with StrictLogging {
   private val apiUrl = if (settings.NetworkType == NetworkType.Main) "https://nodes.wavesnodes.com" else "https://testnodes.wavesnodes.com/"
   private val api = new WavesApi(apiUrl)
 
+  private val operationsStore = new MongoBroadcastOperationsStore(new MongoCollection(db.getCollection("transactions")))
   private val assetsStore = new MongoAssetsStore(new MongoCollection(db.getCollection("assets")))
   private val balancesStore = new MongoBalancesStore(new MongoCollection(db.getCollection("balances")),
     new MongoCollection(db.getCollection("balances_observations")))
@@ -67,13 +69,18 @@ object Server extends App with StrictLogging {
       observedFromTransactions <- observedFromTransactionsF
       observedToTransactions <- observedToTransactionsF
       observedToBalancesTransactions <- observedToBalancesTransactionsF
+      fromTransacrionsOperationIds <- Future.sequence(observedFromTransactions
+        .map(t => operationsStore.findOperationIdByTransactionId(t.id).map(r => t.id -> r)))
+      toTransacrionsOperationIds <- Future.sequence(observedToTransactions
+        .map(t => operationsStore.findOperationIdByTransactionId(t.id).map(r => t.id -> r)))
     } yield {
+      val fromTransactionsOperationIdsMap = fromTransacrionsOperationIds.toMap
+      val toTransactionsOperationIdsMap = toTransacrionsOperationIds.toMap
       Future.sequence(Seq(
-        // todo operationId
         Future.sequence(observedFromTransactions.map(t => fromAddressTransactionsStore.addTransaction(
-          Transaction(None, t.timestamp, t.from, t.to, t.assetId, t.amount, t.id, fromAddressTransactionsStore.field)))),
+          Transaction(fromTransactionsOperationIdsMap(t.id), t.timestamp, t.from, t.to, t.assetId, t.amount, t.id, fromAddressTransactionsStore.field)))),
         Future.sequence(observedToTransactions.map(t => toAddressTransactionsStore.addTransaction(
-          Transaction(None, t.timestamp, t.from, t.to, t.assetId, t.amount, t.id, toAddressTransactionsStore.field))
+          Transaction(toTransactionsOperationIdsMap(t.id), t.timestamp, t.from, t.to, t.assetId, t.amount, t.id, toAddressTransactionsStore.field))
         )),
         Future.sequence(observedToBalancesTransactions.map {
           case (address, assetId, amount, blockHeight) =>

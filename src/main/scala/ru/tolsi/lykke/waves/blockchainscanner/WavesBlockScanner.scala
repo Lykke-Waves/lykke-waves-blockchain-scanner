@@ -1,5 +1,7 @@
 package ru.tolsi.lykke.waves.blockchainscanner
 
+import ru.tolsi.lykke.common.api.{WavesApi, WavesBlock}
+
 class WavesBlockScanner(override val from: Int,
                         override val by: Int,
                         override val api: WavesApi,
