@@ -15,9 +15,7 @@ version in ThisBuild := {
 }
 
 libraryDependencies ++= Seq(
-  "ru.tolsi" %% "lykke-waves-common" % "master-646499cd-SNAPSHOT" % "compile->compile;test->test",
-  "org.scalaj" %% "scalaj-http" % "2.3.0",
-  "commons-io" % "commons-io" % "2.6"
+  "ru.tolsi" %% "lykke-waves-common" % "master-318295f9-SNAPSHOT" % "compile->compile;test->test"
 )
 
 sourceGenerators in Compile += Def.task {
