@@ -52,3 +52,8 @@ javaOptions in Universal ++= Seq(
   "-J-XX:+PerfDisableSharedMem",
   "-J-XX:+ParallelRefProcEnabled",
   "-J-XX:+UseStringDeduplication")
+
+assemblyMergeStrategy in assembly := {
+  case PathList("module-info.class") => MergeStrategy.discard
+  case x => (assemblyMergeStrategy in assembly).value(x)
+}
