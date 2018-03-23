@@ -16,7 +16,7 @@ import scala.util.{Failure, Success}
 
 
 object Server extends App with StrictLogging {
-  private val settingsUrl = Option(System.getProperty("SettingsUrl"))
+  private val settingsUrl = sys.env.get("SettingsUrl")
   private val settings = ScannerSettings.loadSettings(settingsUrl)
 
   private val mongoClient = MongoClient(settings.MongoDBHost, settings.MongoDBPort)
