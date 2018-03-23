@@ -43,3 +43,12 @@ Due to the rather tight deadlines of the contest and lack of free time, the proj
 - [ ] Clean up the code
 - [ ] Better documentation
 - [x] NetworkType (testnet) support
+
+# Docker
+
+You can build and start the docker container using
+
+```
+docker build -t "lykke-waves-scanner-$(git describe --tags --always)" .
+docker run "lykke-waves-scanner-$(git describe --tags --always)"
+```
