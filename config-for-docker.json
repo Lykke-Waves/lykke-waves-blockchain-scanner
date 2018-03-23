@@ -1,0 +1,5 @@
+{
+  "NetworkType": "test",
+  "MongoDBHost": "mongo",
+  "MongoDBPort": 27017
+}
