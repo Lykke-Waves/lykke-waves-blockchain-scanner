@@ -16,7 +16,7 @@ RUN git clone https://github.com/Lykke-Waves/lykke-waves-common.git \
 
 RUN git clone https://github.com/Lykke-Waves/lykke-waves-blockchain-scanner.git \
     && cd lykke-waves-blockchain-scanner \
-    && git checkout 06c66c3 \
+    && git checkout 0.0.1 \
     && sbt clean assembly
 
 RUN mv `find /lykke-waves-blockchain-scanner/target/scala-2.12 -name *.jar` /lykke-waves-blockchain-scanner.jar && chmod -R 744 /lykke-waves-blockchain-scanner.jar
