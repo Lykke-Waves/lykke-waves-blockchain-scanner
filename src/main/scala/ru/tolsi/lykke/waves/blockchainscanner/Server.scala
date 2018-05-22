@@ -29,7 +29,7 @@ object Server extends App with StrictLogging {
 
   private val from = Await.result(stateStorage.readLastBlock, 1 minute)
 
-  private val apiUrl = if (settings.NetworkType == NetworkType.Main) "https://nodes.wavesnodes.com" else "https://testnodes.wavesnodes.com/"
+  private val apiUrl = if (settings.NetworkType == NetworkType.Main) "https://nodes.wavesnodes.com" else "https://testnodes.wavesnodes.com"
   private val api = new WavesApi(apiUrl)
 
   private val operationsStore = new MongoBroadcastOperationsStore(new MongoCollection(db.getCollection("transactions")))
