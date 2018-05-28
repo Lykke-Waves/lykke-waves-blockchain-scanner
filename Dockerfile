@@ -11,12 +11,12 @@ ENV PATH="/usr/local/sbt/bin:${PATH}"
 
 RUN git clone https://github.com/Lykke-Waves/lykke-waves-common.git \
     && cd lykke-waves-common \
-    && git checkout 0.0.1 \
+    && git checkout 0.0.11 \
     && sbt clean publishLocal
 
 RUN git clone https://github.com/Lykke-Waves/lykke-waves-blockchain-scanner.git \
     && cd lykke-waves-blockchain-scanner \
-    && git checkout 0.0.2 \
+    && git checkout 0.0.3 \
     && sbt clean assembly
 
 RUN mv `find /lykke-waves-blockchain-scanner/target/scala-2.12 -name *.jar` /lykke-waves-blockchain-scanner.jar && chmod -R 744 /lykke-waves-blockchain-scanner.jar
