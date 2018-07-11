@@ -55,4 +55,4 @@ docker run "lykke-waves-scanner-$(git describe --tags --always)"
 
 # The results of the contest
 
-Fuck you, Lykke, this company is fraud and deception. I have never met so many incompetent IT experts, I hope you will go bankrupt and people will not trust money to the swindlers. If I knew that before the integration of my decision, I will not get any money and that you have no mutual interest in doing it - I would not take part in this and would not advise anyone.
+Fuck you, Lykke, this company is fraud and deception. I have never met so many incompetent IT experts, I hope you will go bankrupt and people will not trust money to the swindlers. If I knew that before the integration of my decision, I will not get any money and that you have no mutual interest in doing it - I would not take part in this and would not advise anyone.  It was a waste of my time. Burn in hell.
